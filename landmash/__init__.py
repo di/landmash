@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def root():
-    films = LandmarkProxy().get_current_films('5/18/2013')
+    films = LandmarkProxy().get_current_films('6/11/2013')
 
     rt = RTProxy()
     imdb = IMDBProxy()
@@ -98,19 +98,45 @@ class RTProxy:
 
 class IMDBProxy:
 
-    def __init__(self, imdb_url="http://imdbapi.org"):
-        self.imdb_url = imdb_url
+    def __init__(self):
+        pass
 
     def get_rating(self, film):
         r = requests.get(
-            self.imdb_url,
+            "http://imdbapi.org",
             params={
                 'q': film.title,
                 'limit': 10}).json(
                 )
-        sort = sorted(r, key=lambda x: int(
-            x['year'] if x['year'] else 0), reverse=True)
         try:
+            sort = sorted(r, key=lambda x: int(
+                x['year'] if x['year'] else 0), reverse=True)
             return sort[0]['rating']
-        except KeyError:
-            return 0
+        except :
+
+    @RateLimited(10)
+    def imdbapi_org(self, film):
+        r = requests.get(
+            "http://imdbapi.org",
+            params={
+                'q': film.title,
+                'limit': 10}).json(
+                )
+        try:
+            sort = sorted(r, key=lambda x: int(
+                x['year'] if x['year'] else 0), reverse=True)
+            return sort[0]['rating']
+        except :
+            return 0.0
+
+    def omdbapi_com(self, film):
+        r = requests.get(
+            "http://omdbapi.com",
+            params={
+                't': film.title,
+            }).json()
+        try:
+            return float(r['imdbRating'])
+        except:
+            return 0.0
+
