@@ -1,8 +1,8 @@
 <!doctype html>
 <title>Landmash</title>
 {% for f in films %}
-  <a href="{{ f.href }}">{{ f.title }}</a>
-  <a href="">{{ f.rt }}</a>
-  <a href="">{{ f.imdb }}</a>
+  <a href="{{ f.href }}"><img src="{{ f.img }}" alt="{{ f.title }}" title="{{ f.title }}"></a>
+  <a href="{{ f.rt_url }}">{{ f.rt }}</a>
+  <a href="{{ f.imdb_url }}">{{ f.imdb }}</a>
   <br>
 {% endfor %}

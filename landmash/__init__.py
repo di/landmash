@@ -11,14 +11,16 @@ app = Flask(__name__)
 
 @app.route("/")
 def root():
-    films = LandmarkProxy().get_current_films('6/11/2013')
+    films = LandmarkProxy().get_current_films('7/8/2013')
 
     rt = RTProxy()
     imdb = IMDBProxy()
 
     for f in films:
         f.rt = rt.get_rating(f)
+        f.rt_url = rt.get_url(f)
         f.imdb = imdb.get_rating(f)
+        f.imdb_url = imdb.get_url(f)
 
     best = sorted(films, key=lambda x: sort_films(x), reverse=True)
     return render_template('index.html', films=best)
@@ -54,6 +56,7 @@ class Film:
     def __init__(self, title, landmark_link):
         self.title = title
         self.href = "http://www.landmarktheatres.com" + landmark_link
+        self.img = "http://www.landmarktheatres.com/Assets/Images/Films/%s.jpg" % (landmark_link.split("=")[1])
 
     def __str__(self):
         return self.title
@@ -85,58 +88,44 @@ class RTProxy:
             self, rt_url="http://api.rottentomatoes.com/api/public/v1.0/movies.json"):
         self.rt_url = rt_url
         self.rt_api_key = os.environ.get('RT_API_KEY')
+        self.films = dict()
 
     @RateLimited(10)
+    def get_film(self, film):
+        if film.title not in self.films.keys():
+            r = requests.get(
+                self.rt_url,
+                params={'q': film.title,
+                        'apikey': self.rt_api_key}).json()
+            sort = sorted(r['movies'], key=lambda x: int(
+                x['year'] if x['year'] else 0), reverse=True)
+            self.films[film.title] = sort[0]
+        return self.films[film.title]
+
     def get_rating(self, film):
-        r = requests.get(
-            self.rt_url,
-            params={'q': film.title,
-                    'apikey': self.rt_api_key}).json()
-        sort = sorted(r['movies'], key=lambda x: int( x['year'] if x['year'] else 0), reverse=True)
-        return sort[0]['ratings']['critics_score']
+        return self.get_film(film)['ratings']['critics_score']
+
+    def get_url(self, film):
+        return self.get_film(film)['links']['alternate']
 
 
 class IMDBProxy:
 
     def __init__(self):
-        pass
+        self.films = dict()
+
+    def get_film(self, film):
+        if film.title not in self.films.keys():
+            r = requests.get(
+                "http://omdbapi.com",
+                params={
+                    't': film.title,
+                }).json()
+            self.films[film.title] = r
+        return self.films[film.title]
 
     def get_rating(self, film):
-        r = requests.get(
-            "http://imdbapi.org",
-            params={
-                'q': film.title,
-                'limit': 10}).json(
-                )
-        try:
-            sort = sorted(r, key=lambda x: int(
-                x['year'] if x['year'] else 0), reverse=True)
-            return sort[0]['rating']
-        except :
+        return float(self.get_film(film)['imdbRating'])
 
-    @RateLimited(10)
-    def imdbapi_org(self, film):
-        r = requests.get(
-            "http://imdbapi.org",
-            params={
-                'q': film.title,
-                'limit': 10}).json(
-                )
-        try:
-            sort = sorted(r, key=lambda x: int(
-                x['year'] if x['year'] else 0), reverse=True)
-            return sort[0]['rating']
-        except :
-            return 0.0
-
-    def omdbapi_com(self, film):
-        r = requests.get(
-            "http://omdbapi.com",
-            params={
-                't': film.title,
-            }).json()
-        try:
-            return float(r['imdbRating'])
-        except:
-            return 0.0
-
+    def get_url(self, film):
+        return "http://www.imdb.com/title/" + self.get_film(film)['imdbID']
