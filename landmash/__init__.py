@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from datetime import datetime
 import requests
 import time
 import os
@@ -11,20 +12,25 @@ app = Flask(__name__)
 
 @app.route("/")
 def root():
-    films = LandmarkProxy().get_current_films('7/8/2013')
+    try:
+        d = datetime.today()
+        date = "%d/%d/%d"%(d.month, d.day, d.year)
+        films = LandmarkProxy().get_current_films(date)
 
-    rt = RTProxy()
-    imdb = IMDBProxy()
+        rt = RTProxy()
+        imdb = IMDBProxy()
 
-    for f in films:
-        f.rt = rt.get_rating(f)
-        f.rt_url = rt.get_url(f)
-        f.imdb = imdb.get_rating(f)
-        f.imdb_url = imdb.get_url(f)
+        for f in films:
+            f.rt = rt.get_rating(f)
+            f.rt_url = rt.get_url(f)
+            f.imdb = imdb.get_rating(f)
+            f.imdb_url = imdb.get_url(f)
 
-    best = sorted(films, key=lambda x: sort_films(x), reverse=True)
-    return render_template('index.html', films=best)
+        best = sorted(films, key=lambda x: sort_films(x), reverse=True)
+        return render_template('index.html', films=best)
 
+    except StatusError:
+        return "Landmark Website Down!" + date
 
 def sort_films(x):
     if x.imdb > 0:
@@ -49,6 +55,15 @@ def RateLimited(maxPerSecond):
             return ret
         return rateLimitedFunction
     return decorate
+
+
+class StatusError(Exception):
+
+    def __init__(self, status_code):
+        self.status_code = status_code
+
+    def __str__(self):
+        return repr(self.status_code)
 
 
 class Film:
@@ -78,6 +93,8 @@ class LandmarkProxy:
                 'market': market},
             data={
                 'ddtshow': date})
+        if r.status_code != 200:
+            raise StatusError(r.status_code)
         links = BeautifulSoup(r.text).find_all('a', href=True)
         return [Film(x.string, x['href']) for x in links if x['href'].startswith('/Films')]
 
