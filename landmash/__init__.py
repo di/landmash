@@ -27,7 +27,7 @@ def root():
             f.imdb_url = imdb.get_url(f)
 
         best = sorted(films, key=lambda x: sort_films(x), reverse=True)
-        return render_template('index.html', films=best, date=date)
+        return render_template('index.html', films=enumerate(best), date=date)
 
     except StatusError:
         return "Landmark Website Down!"
