@@ -14,23 +14,32 @@ app = Flask(__name__)
 def root():
     try:
         d = datetime.today()
-        date = "%d/%d/%d"%(d.month, d.day, d.year)
+        date = "%d/%d/%d" % (d.month, d.day, d.year)
         films = LandmarkProxy().get_current_films(date)
 
         rt = RTProxy()
         imdb = IMDBProxy()
 
-        for f in films:
-            f.rt = rt.get_rating(f)
-            f.rt_url = rt.get_url(f)
-            f.imdb = imdb.get_rating(f)
-            f.imdb_url = imdb.get_url(f)
+        for i in xrange(len(films) - 1, -1, -1):
+            f = films[i]
+            rt_film = rt.get_film(f)
+            imdb_film = imdb.get_film(f)
+
+            if rt_film is not None and imdb_film is not None:
+                f.rt = rt.get_rating(rt_film)
+                f.rt_url = rt.get_url(rt_film)
+
+                f.imdb = imdb.get_rating(imdb_film)
+                f.imdb_url = imdb.get_url(imdb_film)
+            else:
+                films.remove(f)
 
         best = sorted(films, key=lambda x: sort_films(x), reverse=True)
         return render_template('index.html', films=enumerate(best), date=date)
 
     except StatusError:
         return "Landmark Website Down!"
+
 
 def sort_films(x):
     if x.imdb > 0:
@@ -71,7 +80,8 @@ class Film:
     def __init__(self, title, landmark_link):
         self.title = title
         self.href = "http://www.landmarktheatres.com" + landmark_link
-        self.img = "http://www.landmarktheatres.com/Assets/Images/Films/%s.jpg" % (landmark_link.split("=")[1])
+        self.img = "http://www.landmarktheatres.com/Assets/Images/Films/%s.jpg" % (
+            landmark_link.split("=")[1])
 
     def __str__(self):
         return self.title
@@ -116,14 +126,17 @@ class RTProxy:
                         'apikey': self.rt_api_key}).json()
             sort = sorted(r['movies'], key=lambda x: int(
                 x['year'] if x['year'] else 0), reverse=True)
-            self.films[film.title] = sort[0]
+            try:
+                self.films[film.title] = sort[0]
+            except IndexError:
+                return None
         return self.films[film.title]
 
     def get_rating(self, film):
-        return self.get_film(film)['ratings']['critics_score']
+        return film['ratings']['critics_score']
 
     def get_url(self, film):
-        return self.get_film(film)['links']['alternate']
+        return film['links']['alternate']
 
 
 class IMDBProxy:
@@ -133,16 +146,32 @@ class IMDBProxy:
 
     def get_film(self, film):
         if film.title not in self.films.keys():
+            f = dict()
             r = requests.get(
-                "http://omdbapi.com",
+                "http://www.imdb.com/find",
                 params={
-                    't': film.title,
-                }).json()
-            self.films[film.title] = r
+                    'q': 'The Way Way Back',
+                    's': 'tt',
+                    'exact': 'true'
+                })
+            url = "http://www.imdb.com" + BeautifulSoup(
+                r.text).find_all(
+                    'td',
+                    attrs={
+                        'class': 'result_text'})[
+                            0].a[
+                    'href'].split(
+                        '?')[
+                            0]
+            f['imdbRating'] = float(
+                BeautifulSoup(requests.get(url).text).find_all('div',
+                                                               attrs={'class': 'titlePageSprite'})[0].text.strip())
+            f['imdbURL'] = url
+            self.films[film.title] = f
         return self.films[film.title]
 
     def get_rating(self, film):
-        return float(self.get_film(film)['imdbRating'])
+        return film['imdbRating']
 
     def get_url(self, film):
-        return "http://www.imdb.com/title/" + self.get_film(film)['imdbID']
+        return film['imdbURL']
