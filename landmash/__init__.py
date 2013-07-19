@@ -150,7 +150,7 @@ class IMDBProxy:
             r = requests.get(
                 "http://www.imdb.com/find",
                 params={
-                    'q': 'The Way Way Back',
+                    'q': film.title,
                     's': 'tt',
                     'exact': 'true'
                 })
