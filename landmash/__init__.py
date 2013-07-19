@@ -124,10 +124,8 @@ class RTProxy:
                 self.rt_url,
                 params={'q': film.title,
                         'apikey': self.rt_api_key}).json()
-            sort = sorted(r['movies'], key=lambda x: int(
-                x['year'] if x['year'] else 0), reverse=True)
             try:
-                self.films[film.title] = sort[0]
+                self.films[film.title] = r['movies'][0]
             except IndexError:
                 return None
         return self.films[film.title]
