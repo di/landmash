@@ -17,22 +17,16 @@ def root():
         date = "%d/%d/%d" % (d.month, d.day, d.year)
         films = LandmarkProxy().get_current_films(date)
 
-        rt = RTProxy()
-        imdb = IMDBProxy()
+        critics = [RTProxy(), IMDBProxy()]
 
         for i in xrange(len(films) - 1, -1, -1):
-            f = films[i]
-            rt_film = rt.get_film(f)
-            imdb_film = imdb.get_film(f)
-
-            if rt_film is not None and imdb_film is not None:
-                f.rt = rt.get_rating(rt_film)
-                f.rt_url = rt.get_url(rt_film)
-
-                f.imdb = imdb.get_rating(imdb_film)
-                f.imdb_url = imdb.get_url(imdb_film)
-            else:
-                films.remove(f)
+            film = films[i]
+            for critic in critics:
+                review = critic.get_review(film)
+                if review is None:
+                    films.remove(film)
+                else:
+                    film.reviews.append(review)
 
         best = sorted(films, key=lambda x: sort_films(x), reverse=True)
         return render_template('index.html', films=enumerate(best), date=date)
@@ -42,10 +36,7 @@ def root():
 
 
 def sort_films(x):
-    if x.imdb > 0:
-        return (x.rt + x.imdb*10)/2
-    else:
-        return (x.rt + x.rt-20)/2
+    return sum([e['normalized'] for e in x.reviews])/float(len(x.reviews))
 
 
 def RateLimited(maxPerSecond):
@@ -78,6 +69,7 @@ class StatusError(Exception):
 class Film:
 
     def __init__(self, title, landmark_link):
+        self.reviews = []
         self.title = title
         self.href = "http://www.landmarktheatres.com" + landmark_link
         self.img = "http://www.landmarktheatres.com/Assets/Images/Films/%s.jpg" % (
@@ -108,39 +100,46 @@ class LandmarkProxy:
         return [Film(x.string, x['href']) for x in links if x['href'].startswith('/Films')]
 
 
-class RTProxy:
+class Critic:
 
     def __init__(self):
-        self.rt_url = "http://api.rottentomatoes.com/api/public/v1.0/movies.json"
-        self.rt_api_key = os.environ.get('RT_API_KEY')
         self.films = dict()
 
+    def get_review(self, film):
+        raise NotImplementedError
+
+
+class RTProxy(Critic):
+
+    def __init__(self):
+        Critic.__init__(self)
+        self.rt_url = "http://api.rottentomatoes.com/api/public/v1.0/movies.json"
+        self.rt_api_key = os.environ.get('RT_API_KEY')
+
     @RateLimited(10)
-    def get_film(self, film):
+    def get_review(self, film):
         if film.title not in self.films.keys():
             r = requests.get(
                 self.rt_url,
                 params={'q': film.title,
                         'apikey': self.rt_api_key}).json()
             try:
-                self.films[film.title] = r['movies'][0]
-            except IndexError:
+                self.films[film.title] = {
+                    'rating': r['movies'][0]['ratings']['critics_score'],
+                    'url': r['movies'][0]['links']['alternate'],
+                    'normalized': r['movies'][0]['ratings']['critics_score']
+                }
+            except IndexError:  # TODO No results were found
                 return None
         return self.films[film.title]
 
-    def get_rating(self, film):
-        return film['ratings']['critics_score']
 
-    def get_url(self, film):
-        return film['links']['alternate']
-
-
-class IMDBProxy:
+class IMDBProxy(Critic):
 
     def __init__(self):
-        self.films = dict()
+        Critic.__init__(self)
 
-    def get_film(self, film):
+    def get_review(self, film):
         if film.title not in self.films.keys():
             f = dict()
             r = requests.get(
@@ -150,7 +149,7 @@ class IMDBProxy:
                     's': 'tt',
                     'exact': 'true'
                 })
-            url = "http://www.imdb.com" + BeautifulSoup(
+            url = BeautifulSoup(
                 r.text).find_all(
                     'td',
                     attrs={
@@ -159,15 +158,18 @@ class IMDBProxy:
                     'href'].split(
                         '?')[
                             0]
-            f['imdbRating'] = float(
-                BeautifulSoup(requests.get(url).text).find_all('div',
-                                                               attrs={'class': 'titlePageSprite'})[0].text.strip())
-            f['imdbURL'] = url
-            self.films[film.title] = f
+            url = "http://www.imdb.com" + url
+            r2 = requests.get(url)
+            rating = BeautifulSoup(
+                r2.text).find_all(
+                    'div',
+                    attrs={
+                        'class': 'titlePageSprite'})[
+                            0].text.strip(
+                            )
+            self.films[film.title] = {
+                'rating': float(rating),
+                'url': url,
+                'normalized': float(rating)*10
+            }
         return self.films[film.title]
-
-    def get_rating(self, film):
-        return film['imdbRating']
-
-    def get_url(self, film):
-        return film['imdbURL']
