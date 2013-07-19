@@ -92,9 +92,8 @@ class Film:
 
 class LandmarkProxy:
 
-    def __init__(
-            self, lm_url="http://www.landmarktheatres.com/Market/MarketShowtimes.asp"):
-        self.lm_url = lm_url
+    def __init__(self):
+        self.lm_url = "http://www.landmarktheatres.com/Market/MarketShowtimes.asp"
 
     def get_current_films(self, date, market='Philadelphia'):
         r = requests.post(
@@ -111,9 +110,8 @@ class LandmarkProxy:
 
 class RTProxy:
 
-    def __init__(
-            self, rt_url="http://api.rottentomatoes.com/api/public/v1.0/movies.json"):
-        self.rt_url = rt_url
+    def __init__(self):
+        self.rt_url = "http://api.rottentomatoes.com/api/public/v1.0/movies.json"
         self.rt_api_key = os.environ.get('RT_API_KEY')
         self.films = dict()
 
