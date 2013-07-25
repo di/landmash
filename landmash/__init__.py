@@ -25,6 +25,7 @@ def root():
                 review = critic.get_review(film)
                 if review is None:
                     films.remove(film)
+                    break
                 else:
                     film.reviews.append(review)
 
@@ -123,14 +124,15 @@ class RTProxy(Critic):
                 self.rt_url,
                 params={'q': film.title,
                         'apikey': self.rt_api_key}).json()
-            try:
+            results = r['movies']
+            if len(results):
                 self.films[film.title] = {
-                    'rating': r['movies'][0]['ratings']['critics_score'],
-                    'url': r['movies'][0]['links']['alternate'],
-                    'normalized': r['movies'][0]['ratings']['critics_score']
+                    'rating': results[0]['ratings']['critics_score'],
+                    'url': results[0]['links']['alternate'],
+                    'normalized': results[0]['ratings']['critics_score']
                 }
-            except IndexError:  # TODO No results were found
-                return None
+            else:
+                self.films[film.title] = None
         return self.films[film.title]
 
 
@@ -149,27 +151,24 @@ class IMDBProxy(Critic):
                     's': 'tt',
                     'exact': 'true'
                 })
-            url = BeautifulSoup(
+            results = BeautifulSoup(
                 r.text).find_all(
                     'td',
                     attrs={
-                        'class': 'result_text'})[
-                            0].a[
-                    'href'].split(
-                        '?')[
-                            0]
-            url = "http://www.imdb.com" + url
-            r2 = requests.get(url)
-            rating = BeautifulSoup(
-                r2.text).find_all(
-                    'div',
-                    attrs={
-                        'class': 'titlePageSprite'})[
-                            0].text.strip(
-                            )
-            self.films[film.title] = {
-                'rating': float(rating),
-                'url': url,
-                'normalized': float(rating)*10
-            }
+                        'class': 'result_text'})
+            if len(results):
+                url = results[0].a['href'].split('?')[0]
+                url = "http://www.imdb.com" + url
+                r2 = requests.get(url)
+                rating = BeautifulSoup(
+                    r2.text).find_all(
+                        'div',
+                        attrs={'class': 'titlePageSprite'})[0].text.strip()
+                self.films[film.title] = {
+                    'rating': float(rating),
+                    'url': url,
+                    'normalized': float(rating)*10
+                }
+            else:
+                self.films[film.title] = None
         return self.films[film.title]
