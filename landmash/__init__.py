@@ -142,33 +142,39 @@ class IMDBProxy(Critic):
     def __init__(self):
         Critic.__init__(self)
 
+    def run_search(self, film, exact=True):
+        r = requests.get(
+            "http://www.imdb.com/find",
+            params={
+                'q': film.title,
+                's': 'tt',
+                'ttype': 'ft',
+                'exact': str(exact).lower()
+            })
+        parsed = False
+        parsed_results = None
+        text = r.text
+        while(not parsed):
+            parsed = True
+            try:
+                parsed_results = BeautifulSoup(text)
+            except HTMLParseError as e:
+                textlist = text.splitlines()
+                del textlist[e.lineno - 1]
+                text = '\n'.join(textlist)
+                parsed = False
+        results = parsed_results.find_all(
+                'td',
+                attrs={
+                    'class': 'result_text'})
+        if len(results):
+            return results
+        else:
+            return self.run_search(film, False)
+
     def get_review(self, film):
         if film.title not in self.films.keys():
-            f = dict()
-            r = requests.get(
-                "http://www.imdb.com/find",
-                params={
-                    'q': film.title,
-                    's': 'tt',
-                    'ttype': 'ft',
-                    'exact': 'true'
-                })
-            parsed = False
-            parsed_results = None
-            text = r.text
-            while(not parsed):
-                parsed = True
-                try:
-                    parsed_results = BeautifulSoup(text)
-                except HTMLParseError as e:
-                    textlist = text.splitlines()
-                    del textlist[e.lineno - 1]
-                    text = '\n'.join(textlist)
-                    parsed = False
-            results = parsed_results.find_all(
-                    'td',
-                    attrs={
-                        'class': 'result_text'})
+            results = self.run_search(film)
             if len(results):
                 url = results[0].a['href'].split('?')[0]
                 url = "http://www.imdb.com" + url
