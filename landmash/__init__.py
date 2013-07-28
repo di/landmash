@@ -150,6 +150,7 @@ class IMDBProxy(Critic):
                 params={
                     'q': film.title,
                     's': 'tt',
+                    'ttype': 'ft',
                     'exact': 'true'
                 })
             parsed = False
