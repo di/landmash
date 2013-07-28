@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from datetime import datetime
+from HTMLParser import HTMLParseError
 import requests
 import time
 import os
@@ -151,8 +152,20 @@ class IMDBProxy(Critic):
                     's': 'tt',
                     'exact': 'true'
                 })
-            results = BeautifulSoup(
-                r.text).find_all(
+            app.logger.debug(film.title)
+            parsed = False
+            parsed_results = None
+            text = r.text
+            while(not parsed):
+                parsed = True
+                try:
+                    parsed_results = BeautifulSoup(text)
+                except HTMLParseError as e:
+                    textlist = text.splitlines()
+                    del textlist[e.lineno - 1]
+                    text = '\n'.join(textlist)
+                    parsed = False
+            results = parsed_results.find_all(
                     'td',
                     attrs={
                         'class': 'result_text'})
