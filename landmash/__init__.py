@@ -152,7 +152,6 @@ class IMDBProxy(Critic):
                     's': 'tt',
                     'exact': 'true'
                 })
-            app.logger.debug(film.title)
             parsed = False
             parsed_results = None
             text = r.text
