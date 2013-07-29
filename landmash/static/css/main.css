@@ -1,0 +1,72 @@
+/* -- Here we go! Global CSS Styles below -- */
+
+body
+{
+    background-color: black;
+
+    font-family: sans-serif;
+    color: white;
+    font-size: 12px;
+}
+
+a
+{
+    color: white;
+    font-size: 16px;
+    text-decoration: none;
+}
+
+a.visited
+{
+    color: white;
+    text-decoration: none;
+}
+
+
+/* -- Div Styles -- */
+
+
+.landmashWrapper
+{
+    width: 100%;
+    padding-top: 20px;
+    padding-bottom: 10px;
+    padding-left: 20%
+
+}
+
+.imgContainer
+{
+    position: relative;
+    display: inline-block;
+    clear: none;
+    float: left;
+}
+
+.ratings
+{
+    position: relative;
+    display: inline-block;
+    clear: none;
+
+    margin: 10px;
+
+}
+
+.ratingsLink
+{
+    /*display: block;*/
+
+    padding: 10px;
+    margin: 10px;
+    background-color: #555555;
+}
+
+
+ul, li
+{
+    list-style: none;
+    list-style-type: none;
+}
+
+
