@@ -1,6 +1,6 @@
-/* -- Here we go! Global CSS Styles below -- */
+/*/* -- Here we go! Global CSS Styles below -- */
 
-body
+/*body
 {
     background-color: black;
 
@@ -25,48 +25,91 @@ a.visited
 
 /* -- Div Styles -- */
 
+/*.leftwrapper
+{
+    display:inline-block;
+    width: 30%;
+    background-color: #ee3e64;
+}
+
+.rightwrapper
+{
+    display:inline-block;
+    width: 30%;
+    background-color: #ee3e64;
+}
 
 .landmashWrapper
 {
-    width: 100%;
+    display: inline-block;
+
+    width: 40%;
     padding-top: 20px;
     padding-bottom: 10px;
-    padding-left: 20%
+    //padding-left: 400px;
 
-}
+    background-color: yellow;
+    .filmContainer
+    {
+        padding: 10px;
+        background-color: blue;
 
-.imgContainer
-{
-    position: relative;
-    display: inline-block;
-    clear: none;
-    float: left;
-}
-
-.ratings
-{
-    position: relative;
-    display: inline-block;
-    clear: none;
-
-    margin: 10px;
-
-}
-
-.ratingsLink
-{
-    /*display: block;*/
-
-    padding: 10px;
-    margin: 10px;
-    background-color: #555555;
-}
+        .ordinals
+        {
+            display: inline-block;
+            position: relative;
+            float: left;
+            clear: none;
 
 
-ul, li
+            padding: 10px;
+            height: 25px;
+
+            color: white;
+            font-size: 16px;
+            text-decoration: none;
+
+            background-color: pink;
+        }
+        .imgContainer
+        {
+            position: relative;
+            display: inline-block;
+            clear: none;
+            // float: left;
+
+            width: 475px;
+            padding: 10px;
+            background-color: green;
+        }
+        .ratings
+        {
+            position: relative;
+            display: inline-block;
+            clear: none;
+
+            margin: 10px;
+
+            background-color: purple;
+
+            .ratingsLink
+            {
+                /*display: block;*/
+
+                /*padding: 10px;
+                margin: 10px;
+                background-color: red;
+            }
+        }
+    }
+}*/
+
+
+/*ul, li
 {
     list-style: none;
     list-style-type: none;
-}
+}*/
+
 
 

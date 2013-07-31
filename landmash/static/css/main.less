@@ -2,17 +2,17 @@
 
 body
 {
-    background-color: black;
+    background-color: #000;
 
-    font-family: sans-serif;
-    color: white;
+    font-family: 'Lato';
+    color: #333;
     font-size: 12px;
 }
 
 a
 {
-    color: white;
-    font-size: 16px;
+    color: #fff;
+    //font-size: 16px;
     text-decoration: none;
 }
 
@@ -22,51 +22,227 @@ a.visited
     text-decoration: none;
 }
 
+h1
+{
+    font-family: 'Lato', sans-serif;
+    font-size: 70px;
+    text-transform: uppercase;
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-align: center;
+    color: rgba(255,255,255, 1.0);
+    // text-shadow: rgb(100, 100, 100, 0.5) 1px 1px,
+    // rgb(200, 200, 200, 0.5) 2px 2px,
+    // rgb(200, 200, 200, 0.5) 3px 3px;
+    //rgb(204, 204, 204, 0.5) 4px 4px;
+}
+h2
+{
+    text-align: center;
+    color: rgba(255, 255, 255, 1.0);
+    font-family: 'Archivo Narrow';
+    font-style: italic;
+    font-weight: 400;
+    font-size: 14px;
+    letter-spacing: 2px;
+    margin-top: -20px;
+
+}
 
 /* -- Div Styles -- */
+.landmashHeader
+{
+    position: fixed;
+    z-index: 4;
+    top: 0;
 
+    width: 100%;
+    padding-bottom: 100px;
+
+    background: -moz-linear-gradient(top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,1)), color-stop(100%,rgba(0,0,0,0))); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top, rgba(0,0,0,1) 40%,rgba(0,0,0,0) 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, rgba(0,0,0,1) 40%,rgba(0,0,0,0) 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top, rgba(0,0,0,1) 40%,rgba(0,0,0,0) 100%); /* IE10+ */
+    background: linear-gradient(to bottom, rgba(0,0,0,1) 40%,rgba(0,0,0,0) 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#00000000',GradientType=0 ); /* IE6-9 */
+}
 
 .landmashWrapper
 {
-    width: 100%;
-    padding-top: 20px;
-    padding-bottom: 10px;
-    padding-left: 20%
+    margin: 36px auto;
+    width: 90%;
+    padding-top: 230px;
 
+    background-color: none;
+
+    .filmsWrapper
+    {
+        padding: 10px 20%;
+        background-color: #000;
+
+            .flipContainer
+            {
+                position: relative;
+                float: left;
+                top: 0;
+
+                margin: 0 auto;
+                height: 120px;
+                width: 100px;
+                
+                -webkit-perspective: 1000;
+                -moz-perspective: 1000;
+
+                .flipper
+                {
+                    -webkit-transition: 0.6s;
+                    -webkit-transform-style: preserve-3d;
+
+                    -moz-transition: 0.6s;
+                    -moz-transform-style: preserve-3d;
+
+                    &:hover
+                    {
+                    position: relative;
+                    -webkit-transform: rotateY(180deg);
+                    -moz-transform: rotateY(180deg);
+
+                    }
+
+                    .front
+                    {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        z-index: 1;
+
+                        width: 100px;
+                        height: 100px;
+                        padding-top: 20px;
+                        background-color: none;
+                        border: 0.25px solid #fff;
+                        
+
+                        cursor: pointer;
+                        font-size: 60px;
+                        font-family: 'Lato';
+                        color: #fff;
+                        text-align:center;
+                        line-height: 70px;
+                        
+                        -webkit-backface-visibility: hidden;
+                        -moz-backface-visibility: hidden;
+                    }
+                    .back
+                    {
+                        width: 100px;
+                        height: 100px;
+                        padding-top: 20px;
+                        cursor: pointer;
+                        background-color: #000;
+                        border: 0.25px solid #fff;
+
+                        font-size: 20px;
+                        font-family: 'Lato';
+                        color: #fff;
+                        text-align:center;
+                        line-height: 40px;
+
+                        -webkit-backface-visibility: hidden;
+                        -moz-backface-visibility: hidden;
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+
+                        -webkit-transform: rotateY(180deg);
+                        -moz-transform: rotateY(180deg);
+                        
+                        .ratingsLink
+                        {
+                            display: block;
+
+                            transition-delay: 0.2s;
+                            -webkit-transition-delay: 0.2s;
+                            -moz-transition-delay: 0.2s;
+                            transition: 0.4s ease;
+                            -webkit-transition: 0.4s ease;
+                            -moz-transition: 0.4s ease;
+
+                            &:first-child
+                            {
+                                &:after
+                                {
+                                    content:'  %';
+                                    font-size: 12px;
+                                    position: relative;
+                                }
+                            }
+                            &:last-child
+                            {
+                                &:after
+                                {
+                                    content: '  /  10';
+                                    font-size: 12px;
+                                    position: relative;
+                                    //top: 10px;
+                                }
+                            }
+                            &:hover
+                            {
+                                font-size: 110%;
+                                //margin-top: 10px;
+                            }
+                        }
+                    }
+                }
+            }
+
+            .imgContainer
+            {
+                clear: none;
+                display: inline-block;
+                position: relative;
+                z-index: 0;
+
+                height: 120px;
+                margin-left: 0px;
+                overflow: hidden;
+                border: 0.25px solid #fff;
+
+                .block
+                {
+                    float: left;
+                    background-color: black;
+                    opacity: 0.7;
+                    -webkit-opacity: 0.7;
+                    -moz-opacity: 0.7;
+                    -o-opacity: 0.7;
+                    transition: 0.6s ease;
+                    -webkit-transition: 0.6s ease;
+                    -moz-transition: 0.6s ease;
+                    -o-transition: 0.6s ease;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    display: block;
+                    height: 120px;
+                    width: 100%;
+                    z-index: 1;
+                    &:hover
+                    {
+                        opacity: 0.2;
+                        -webkit-opacity: 0.2;
+                        -moz-opacity: 0.2;
+                        -o-opacity: 0.2;
+                    }
+                }
+                .img
+                {
+                    overflow: hidden;
+                }
+            }
+        // }
+    }
 }
-
-.imgContainer
-{
-    position: relative;
-    display: inline-block;
-    clear: none;
-    float: left;
-}
-
-.ratings
-{
-    position: relative;
-    display: inline-block;
-    clear: none;
-
-    margin: 10px;
-
-}
-
-.ratingsLink
-{
-    /*display: block;*/
-
-    padding: 10px;
-    margin: 10px;
-    background-color: #555555;
-}
-
-
-ul, li
-{
-    list-style: none;
-    list-style-type: none;
-}
-
 
