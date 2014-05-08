@@ -37,3 +37,6 @@ nosetests.xml
 *.env
 venv
 *.swp
+
+# Mac stuff
+.DS_Store
