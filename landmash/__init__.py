@@ -5,8 +5,20 @@ from HTMLParser import HTMLParseError
 import requests
 import time
 import os
+import json
 from bs4 import BeautifulSoup
 from flask import Flask, request, render_template
+from urlparse import urlparse
+from pymongo import Connection
+
+MONGO_URL = os.environ.get('MONGOHQ_URL')
+
+if MONGO_URL:
+    connection = Connection(MONGO_URL)
+    db = connection[urlparse(MONGO_URL).path[1:]]
+else:
+    sys.exit("MongoDB URL not found, exiting")
+
 
 app = Flask(__name__)
 
@@ -76,6 +88,15 @@ class Film:
         self.href = "http://www.landmarktheatres.com" + landmark_link
         self.img = "http://www.landmarktheatres.com/Assets/Images/Films/%s.jpg" % (
             landmark_link.split("=")[1])
+        self.add_to_db()
+
+    def add_to_db(self):
+        if db.films.find_one({"title":self.title}) is None:
+            db.films.insert({
+                "title": self.title,
+                "href": self.href,
+                "img": self.img
+            })
 
     def __str__(self):
         return self.title
@@ -90,6 +111,30 @@ class LandmarkProxy:
         self.lm_url = "http://www.landmarktheatres.com/Market/MarketShowtimes.asp"
 
     def get_current_films(self, date, market='Philadelphia'):
+        listing = db.listings.find_one({"date": date})
+
+        if listing is None:
+            films = self.make_request(date, market)
+            db.listings.insert({
+                "date": date,
+                "markets": [
+                    {
+                        "market":market,
+                        "films":[f.title for f in films]
+                    }
+                ]
+            })
+
+            app.logger.debug(films)
+            return films
+        else:
+            app.logger.debug(listing)
+            films = self.make_request(date, market) #temporary
+            for f in films:
+                app.logger.debug(json.dumps(f, default=lambda x:x.__dict__))
+            return films
+
+    def make_request(self, date, market):
         r = requests.post(
             self.lm_url,
             params={
@@ -100,6 +145,7 @@ class LandmarkProxy:
             raise StatusError(r.status_code)
         links = BeautifulSoup(r.text).find_all('a', href=True)
         return [Film(x.string, x['href']) for x in links if x['href'].startswith('/Films')]
+
 
 
 class Critic:
