@@ -33,10 +33,10 @@
       <div class = "filmsWrapper">
             <div class="flipContainer">
                 <div class="flipper">
-                    <div class = "front">{{ i+1 }} {#{ f.title }#}</div> 
+                    <div class = "front">{{ i+1 }} {#{ f.title }#}</div>
                     <div class = "back">
                       {% for r in f.reviews%}
-                            <a class = "ratingsLink" href="{{ r['url'] }}">{{ r['rating'] }}</a>
+                            <a class = "ratingsLink" href="{{ r.url }}">{{ r.rating }}</a>
                         {% endfor %}
                     </div>
                 </div>
