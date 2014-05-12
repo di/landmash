@@ -72,31 +72,32 @@ class StatusError(Exception):
 class Film:
 
     def __init__(self, title, landmark_link, critics):
-        self.reviews = []
         self.title = title
-        self.critics = critics
         self.href = "http://www.landmarktheatres.com" + landmark_link
         self.img = "http://www.landmarktheatres.com/Assets/Images/Films/%s.jpg" % (
             landmark_link.split("=")[1])
-        for critic in critics:
-            review = critic.get_review(self)
-            self.reviews.append(review)
+        self.reviews = []
 
-        self.add_to_db()
+        cache = db.films.find_one({"title": self.title})
+        if cache is None:
+            app.logger.debug("Adding " + self.title + " to DB.")
 
-    def add_to_db(self):
-        if db.films.find_one({"title": self.title}) is None:
-            db.films.insert({
-                "title": self.title,
-                "href": self.href,
-                "img": self.img
-            })
+            for critic in critics:
+                review = critic.get_review(self)
+                self.reviews.append(review)
 
-    def __str__(self):
-        return self.title
+            db.films.insert(self.to_dict())
+        else:
+            self.reviews = [Review(
+                            x['critic_id'],
+                            x['rating'],
+                            x['url'],
+                            x['normalized']) for x in cache['reviews']]
 
-    def __repr__(self):
-        return self.__str__()
+    def to_dict(self):
+        ret = self.__dict__
+        ret['reviews'] = [x.__dict__ for x in self.reviews]
+        return ret
 
 
 class LandmarkProxy:
@@ -124,8 +125,6 @@ class LandmarkProxy:
         else:
             app.logger.debug(listing)
             films = self.make_request(date, market)  # temporary
-            for f in films:
-                app.logger.debug(json.dumps(f, default=lambda x: x.__dict__))
             return films
 
     def make_request(self, date, market):
