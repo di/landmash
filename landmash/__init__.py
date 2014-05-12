@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-from datetime import datetime
 from HTMLParser import HTMLParseError
 import requests
 import time
@@ -10,6 +9,7 @@ from bs4 import BeautifulSoup
 from flask import Flask, request, render_template
 from urlparse import urlparse
 from pymongo import Connection
+from time import strftime
 
 MONGO_URL = os.environ.get('MONGOHQ_URL')
 
@@ -26,13 +26,11 @@ app = Flask(__name__)
 @app.route("/")
 def root():
     try:
-        d = datetime.today()
-        date = "%d/%d/%d" % (d.month, d.day, d.year)
-        landmark_films = LandmarkProxy().get_current_films(date)
+        landmark_films = LandmarkProxy().get_current_films(strftime("%x"))
         critics = [RTProxy(), IMDBProxy()]
         films = [Film(name, href, critics) for name, href in landmark_films]
         best = sorted(films, key=lambda x: sort_films(x), reverse=True)
-        return render_template('index.html', films=enumerate(best), date=date)
+        return render_template('index.html', films=enumerate(best), date=strftime("%A, %B %-d"))
 
     except StatusError:
         return "Landmark Website Down!"
