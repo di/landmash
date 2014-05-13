@@ -28,7 +28,7 @@ def root():
     try:
         landmark_films = LandmarkProxy().get_current_films(strftime("%x"))
         critics = [RTProxy(), IMDBProxy()]
-        films = [Film(name, href, critics) for name, href in landmark_films]
+        films = [Film(x) for x in landmark_films]
         best = sorted(films, key=lambda x: sort_films(x), reverse=True)
         return render_template('index.html', films=enumerate(best), date=strftime("%A, %B %-d"))
 
@@ -69,11 +69,14 @@ class StatusError(Exception):
 
 class Film:
 
-    def __init__(self, title, landmark_link, critics):
-        self.title = title
-        self.href = "http://www.landmarktheatres.com" + landmark_link
+    def __init__(self, data):
+        self.title = data['title']
+        self.href = "http://www.landmarktheatres.com" + data['href']
         self.img = "http://www.landmarktheatres.com/Assets/Images/Films/%s.jpg" % (
-            landmark_link.split("=")[1])
+            data['href'].split("=")[1])
+        self.location_name = data['location_name']
+        self.location_href = data['location_href']
+        self.time_string = data['time_string']
         self.reviews = []
 
         cache = db.films.find_one({"title": self.title})
@@ -107,19 +110,15 @@ class LandmarkProxy:
         listing = db.listings.find_one({"date": date, "market": market})
 
         if listing is None:
-            new_films, films = self.make_request(date, market)
+            films = self.make_request(date, market)
             db.listings.insert({
                 "date": date,
                 "market": market,
-                "films": new_films
+                "films": films
             })
-
-            app.logger.debug(films)
             return films
         else:
-            app.logger.debug(listing)
-            _, films = self.make_request(date, market)  # temporary
-            return films
+            return listing['films']
 
     def make_request(self, date, market):
         ret = dict()
@@ -137,15 +136,12 @@ class LandmarkProxy:
         locations = BeautifulSoup(
             r.text).find_all('ul',
                              id='navMainST')
-        films = [{"title": f.a.string,
-                  "href": f.a['href'],
-                  "location_name": l.li.a.a.string,
-                  "location_href": l.li.a.a['href'],
-                  "time_string": f.span.string}
-                 for l in locations for f in l.find_all('li', id=None)]
-
-        links = BeautifulSoup(r.text).find_all('a', href=True)
-        return films, [(x.string, x['href']) for x in links if x['href'].startswith('/Films')]
+        return [{"title": f.a.string,
+                 "href": f.a['href'],
+                 "location_name": l.li.a.a.string,
+                 "location_href": l.li.a.a['href'],
+                 "time_string": f.span.string}
+                for l in locations for f in l.find_all('li', id=None)]
 
 
 class Review():

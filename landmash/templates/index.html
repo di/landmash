@@ -27,18 +27,20 @@
             <div class = "filmsWrapper">
                 <div class="flipContainer">
                     <div class="flipper">
-                        <div class = "front">{{ i+1 }} {#{ f.title }#}</div>
+                        <div class = "front">{{ i+1 }}</div>
                         <div class = "back">
-                          {% for r in f.reviews%}
+                            {% for r in f.reviews%}
                                 <a class = "ratingsLink" href="{{ r.url }}">{{ r.rating }}</a>
                             {% endfor %}
                         </div>
                     </div>
                 </div>
-
                 <div class ="imgContainer">
-                    <img class = "landPic" src="{{ f.img }}">
-                    <a class = "landLink" href="{{ f.href }}" alt="{{ f.title }}" title="{{ f.title }}"><div class="block"></div></a>
+                    <a class = "landLink" href="{{ f.href }}" alt="{{ f.title }}" title="{{ f.title }}">
+                        <img class = "landPic" src="{{ f.img }}">
+                    </a>
+                    <br/>
+                    <a href="{{ f.href }}">{{ f.title }}</a> @ <a href="{{ f.location_href }}">{{ f.location_name }}</a>, {{ f.time_string }}
                 </div>
             </div>
 
