@@ -104,28 +104,27 @@ class LandmarkProxy:
         self.lm_url = "http://www.landmarktheatres.com/Market/MarketShowtimes.asp"
 
     def get_current_films(self, date, market='Philadelphia'):
-        listing = db.listings.find_one({"date": date})
+        listing = db.listings.find_one({"date": date, "market": market})
 
         if listing is None:
-            films = self.make_request(date, market)
+            new_films, films = self.make_request(date, market)
             db.listings.insert({
                 "date": date,
-                "markets": [
-                    {
-                        "market": market,
-                        "films": [title for title, _ in films]
-                    }
-                ]
+                "market": market,
+                "films": new_films
             })
 
             app.logger.debug(films)
             return films
         else:
             app.logger.debug(listing)
-            films = self.make_request(date, market)  # temporary
+            _, films = self.make_request(date, market)  # temporary
             return films
 
     def make_request(self, date, market):
+        ret = dict()
+        ret["date"] = date
+        ret["markets"] = [market]
         r = requests.post(
             self.lm_url,
             params={
@@ -134,8 +133,19 @@ class LandmarkProxy:
                 'ddtshow': date})
         if r.status_code != 200:
             raise StatusError(r.status_code)
+
+        locations = BeautifulSoup(
+            r.text).find_all('ul',
+                             id='navMainST')
+        films = [{"title": f.a.string,
+                  "href": f.a['href'],
+                  "location_name": l.li.a.a.string,
+                  "location_href": l.li.a.a['href'],
+                  "time_string": f.span.string}
+                 for l in locations for f in l.find_all('li', id=None)]
+
         links = BeautifulSoup(r.text).find_all('a', href=True)
-        return [(x.string, x['href']) for x in links if x['href'].startswith('/Films')]
+        return films, [(x.string, x['href']) for x in links if x['href'].startswith('/Films')]
 
 
 class Review():
