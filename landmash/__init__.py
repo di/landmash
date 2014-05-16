@@ -28,7 +28,7 @@ def root():
     try:
         landmark_films = LandmarkProxy().get_current_films(strftime("%x"))
         critics = [RTProxy(), IMDBProxy()]
-        films = [Film(x) for x in landmark_films]
+        films = [Film(x, critics) for x in landmark_films]
         best = sorted(films, key=lambda x: sort_films(x), reverse=True)
         return render_template('index.html', films=enumerate(best), date=strftime("%A, %B %-d"))
 
@@ -69,7 +69,7 @@ class StatusError(Exception):
 
 class Film:
 
-    def __init__(self, data):
+    def __init__(self, data, critics):
         self.title = data['title']
         self.href = "http://www.landmarktheatres.com" + data['href']
         self.img = "http://www.landmarktheatres.com/Assets/Images/Films/%s.jpg" % (
