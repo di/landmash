@@ -29,18 +29,18 @@
                     <div class="flipper">
                         <div class = "front">{{ i+1 }}</div>
                         <div class = "back">
-                            {% for r in f.reviews%}
+                            {% for r in f.film.reviews%}
                                 <a class = "ratingsLink" href="{{ r.url }}">{{ r.rating }}</a>
                             {% endfor %}
                         </div>
                     </div>
                 </div>
                 <div class ="imgContainer">
-                    <a class = "landLink" href="{{ f.href }}" alt="{{ f.title }}" title="{{ f.title }}">
-                        <img class = "landPic" src="{{ f.img }}">
+                    <a class = "landLink" href="{{ f.film.href }}" alt="{{ f.film.title }}" title="{{ f.film.title }}">
+                        <img class = "landPic" src="{{ f.film.img }}">
                     </a>
                     <br/>
-                    <a href="{{ f.href }}">{{ f.title }}</a> @ <a href="{{ f.location_href }}">{{ f.location_name }}</a>, {{ f.time_string }}
+                    <a href="{{ f.film.href }}">{{ f.film.title }}</a> @ <a href="{{ f.location_href }}">{{ f.location_name }}</a>, {{ f.time_string }}
                 </div>
             </div>
 
@@ -49,16 +49,3 @@
         </div>
     </body>
 </html>
-
-
-<!-- <!doctype html>
-<title>Landmash - {#{ date }}</title>
-Best films for {{ date }}:<br>
-{% for (i, f) in films %}
-  {{ i+1 }}. <a href="{{ f.href }}"><img src="{{ f.img }}" alt="{{ f.title }}" title="{{ f.title }}"></a>
-  {% for r in f.reviews%}
-    <a href="{{ r['url'] }}">{{ r['rating'] }}</a>
-  {% endfor %}
-  <br>
-{% endfor %#}
- -->

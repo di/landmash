@@ -10,26 +10,24 @@ from flask import Flask, request, render_template
 from urlparse import urlparse
 from pymongo import Connection
 from time import strftime
+from landmash.models import *
+from flask.ext.mongoengine import MongoEngine
 
-MONGO_URL = os.environ.get('MONGOHQ_URL')
-
-if MONGO_URL:
-    connection = Connection(MONGO_URL)
-    db = connection[urlparse(MONGO_URL).path[1:]]
-else:
-    sys.exit("MongoDB URL not found, exiting")
-
+def initialize_db(flask_app):
+    MONGO_URL = os.environ.get('MONGOHQ_URL')
+    flask_app.config["MONGODB_SETTINGS"] = {
+        "DB": urlparse(MONGO_URL).path[1:],
+        "host": MONGO_URL}
+    return MongoEngine(flask_app)
 
 app = Flask(__name__)
-
+db = initialize_db(app)
 
 @app.route("/")
 def root():
     try:
-        landmark_films = LandmarkProxy().get_current_films(strftime("%x"))
-        critics = [RTProxy(), IMDBProxy()]
-        films = [Film(x, critics) for x in landmark_films]
-        best = sorted(films, key=lambda x: sort_films(x), reverse=True)
+        listing = LandmarkProxy().get_listing("06/03/14")
+        best = sorted(listing.showing, key=lambda x: sort_films(x), reverse=True)
         return render_template('index.html', films=enumerate(best), date=strftime("%A, %B %-d"))
 
     except StatusError:
@@ -37,7 +35,7 @@ def root():
 
 
 def sort_films(x):
-    return sum([e.normalized for e in x.reviews])/float(len(x.reviews))
+    return sum([e.normalized for e in x.film.reviews])/float(len(x.film.reviews))
 
 
 def RateLimited(maxPerSecond):
@@ -67,6 +65,7 @@ class StatusError(Exception):
         return repr(self.status_code)
 
 
+'''
 class Film:
 
     def __init__(self, data, critics):
@@ -79,7 +78,7 @@ class Film:
         self.time_string = data['time_string']
         self.reviews = []
 
-        cache = db.films.find_one({"title": self.title})
+        cache = pm_db.films.find_one({"title": self.title})
         if cache is None:
             app.logger.debug("Adding " + self.title + " to DB.")
 
@@ -87,7 +86,7 @@ class Film:
                 review = critic.get_review(self)
                 self.reviews.append(review)
 
-            db.films.insert(self.to_dict())
+            pm_db.films.insert(self.to_dict())
         else:
             self.reviews = [Review(
                             x['critic_id'],
@@ -99,26 +98,30 @@ class Film:
         ret = self.__dict__
         ret['reviews'] = [x.__dict__ for x in self.reviews]
         return ret
-
+'''
 
 class LandmarkProxy:
 
     def __init__(self):
         self.lm_url = "http://www.landmarktheatres.com/Market/MarketShowtimes.asp"
 
-    def get_current_films(self, date, market='Philadelphia'):
-        listing = db.listings.find_one({"date": date, "market": market})
+    def get_listing(self, date, market_name='Philadelphia'):
+        market = Market.objects.get(name=market_name)
 
-        if listing is None:
-            films = self.make_request(date, market)
-            db.listings.insert({
-                "date": date,
-                "market": market,
-                "films": films
-            })
-            return films
+        try:
+            listing = Listing.objects.get(date=date, market=market)
+        except Listing.DoesNotExist:
+            app.logger.debug("DNE: Listing for %s on %s" % (market_name, date))
+            film_data = self.make_request(date, market_name)
+            showing = []
+            for film in film_data:
+                try:
+                    showing.append(Film.objects.get(title=film['title']))
+                except Film.DoesNotExist:
+                    app.logger.debug("DNE: %s" % (film['title']))
+            return showing
         else:
-            return listing['films']
+            return listing
 
     def make_request(self, date, market):
         ret = dict()
@@ -144,15 +147,6 @@ class LandmarkProxy:
                 for l in locations for f in l.find_all('li', id=None)]
 
 
-class Review():
-
-    def __init__(self, critic_id, rating, url, normalized):
-        self.critic_id = critic_id
-        self.rating = rating
-        self.url = url
-        self.normalized = normalized
-
-
 class Critic():
 
     def __init__(self, critic_id):
@@ -160,7 +154,6 @@ class Critic():
 
     def get_review(self, film):
         raise NotImplementedError
-
 
 class RTProxy(Critic):
 
