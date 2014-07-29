@@ -165,14 +165,15 @@ class RTProxy(Critic):
             params={'q': film.title,
                     'apikey': self.rt_api_key}).json()
         results = r['movies']
-        score = results[0]['ratings']['critics_score']
-        url = results[0]['links']['alternate']
-
-        # To counteract for negative, aka nonexistent scores
-        if score < 0:
-            score = 49
 
         if len(results):
+            score = results[0]['ratings']['critics_score']
+            url = results[0]['links']['alternate']
+
+            # To counteract for negative, aka nonexistent scores
+            if score < 0:
+                score = 49
+
             return Review(critic=self.critic_id, rating=score, url=url, normalized=score)
         else:
             return None
@@ -222,9 +223,11 @@ class IMDBProxy(Critic):
             rating = BeautifulSoup(
                 r2.text).find_all(
                     'div',
-                    attrs={'class': 'titlePageSprite'})[0].text.strip()
-            rating = float(rating)
-            return Review(critic=self.critic_id, rating=rating, url=url, normalized=rating*10)
+                    attrs={'class': 'titlePageSprite'})[0]
+            if len(rating):
+                rating = float(rating[0].text.strip())
+                return Review(critic=self.critic_id, rating=rating, url=url, normalized=rating*10)
+            return None
 
         else:
             return None
