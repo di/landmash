@@ -13,6 +13,7 @@ from time import strftime
 from landmash.models import *
 from flask.ext.mongoengine import MongoEngine
 
+
 def initialize_db(flask_app):
     MONGO_URL = os.environ.get('MONGOHQ_URL')
     flask_app.config["MONGODB_SETTINGS"] = {
@@ -23,19 +24,25 @@ def initialize_db(flask_app):
 app = Flask(__name__)
 db = initialize_db(app)
 
+
 @app.route("/")
 def root():
     try:
-        listing = LandmarkProxy().get_listing("06/03/14")
-        best = sorted(listing.showing, key=lambda x: sort_films(x), reverse=True)
-        return render_template('index.html', films=enumerate(best), date=strftime("%A, %B %-d"))
+        date = strftime("%A, %B %-d")
+        market = Market.objects.get(name='Philadelphia')
+        listing = LandmarkProxy().get_listing( strftime( "%x"), market)
+        films = enumerate(listing.showing)
+        return render_template('index.html', films=films, date=date, market=market)
 
     except StatusError:
         return "Landmark Website Down!"
 
 
-def sort_films(x):
-    return sum([e.normalized for e in x.film.reviews])/float(len(x.film.reviews))
+def sort_films(showing):
+    if len(showing.film.reviews) > 0:
+        total = sum([e.normalized for e in showing.film.reviews])
+        return total/float(len(showing.film.reviews))
+    return 0
 
 
 def RateLimited(maxPerSecond):
@@ -65,63 +72,44 @@ class StatusError(Exception):
         return repr(self.status_code)
 
 
-'''
-class Film:
-
-    def __init__(self, data, critics):
-        self.title = data['title']
-        self.href = "http://www.landmarktheatres.com" + data['href']
-        self.img = "http://www.landmarktheatres.com/Assets/Images/Films/%s.jpg" % (
-            data['href'].split("=")[1])
-        self.location_name = data['location_name']
-        self.location_href = data['location_href']
-        self.time_string = data['time_string']
-        self.reviews = []
-
-        cache = pm_db.films.find_one({"title": self.title})
-        if cache is None:
-            app.logger.debug("Adding " + self.title + " to DB.")
-
-            for critic in critics:
-                review = critic.get_review(self)
-                self.reviews.append(review)
-
-            pm_db.films.insert(self.to_dict())
-        else:
-            self.reviews = [Review(
-                            x['critic_id'],
-                            x['rating'],
-                            x['url'],
-                            x['normalized']) for x in cache['reviews']]
-
-    def to_dict(self):
-        ret = self.__dict__
-        ret['reviews'] = [x.__dict__ for x in self.reviews]
-        return ret
-'''
-
 class LandmarkProxy:
 
     def __init__(self):
         self.lm_url = "http://www.landmarktheatres.com/Market/MarketShowtimes.asp"
 
-    def get_listing(self, date, market_name='Philadelphia'):
-        market = Market.objects.get(name=market_name)
+    def make_listing(self, date, market):
+        listing = Listing(date=date, market=market).save()
+        for f in self.make_request(date, market.name):
+            location_href = "http://www.landmarktheatres.com" + f['location_href']
+            location_name = f[ "location_name"]
+            time_string = f["time_string"]
+            showing = None
 
-        try:
-            listing = Listing.objects.get(date=date, market=market)
-        except Listing.DoesNotExist:
-            app.logger.debug("DNE: Listing for %s on %s" % (market_name, date))
-            film_data = self.make_request(date, market_name)
-            showing = []
-            for film in film_data:
-                try:
-                    showing.append(Film.objects.get(title=film['title']))
-                except Film.DoesNotExist:
-                    app.logger.debug("DNE: %s" % (film['title']))
-            return showing
-        else:
-            return listing
+            try:
+                film = Film.objects.get(title=f['title'])
+                showing = Showing(location_href=location_href, location_name=location_name, time_string=time_string, film=film)
+            except Film.DoesNotExist:
+                app.logger.debug("DNE: %s" % (f['title']))
+                img = "http://www.landmarktheatres.com/Assets/Images/Films/%s.jpg" % (f['href'].split("=")[1])
+                film = Film(title=f['title'], href="http://www.landmarktheatres.com" + f['href'], img=img).save()
+
+                for critic in [RTProxy(), IMDBProxy()]:
+                    review = critic.get_review(film)
+                    film.update(add_to_set__reviews=critic.get_review(film))
+
+                showing = Showing(location_href=location_href, location_name=location_name, time_string=time_string, film=film)
+            listing.update(add_to_set__showing=showing)
+        listing.reload()
+
+        # Sort the films
+        listing.showing = sorted(
+            listing.showing,
+            key=lambda x: sort_films(
+                x),
+            reverse=True)
+
+        listing.save()
+        return listing
 
     def make_request(self, date, market):
         ret = dict()
@@ -146,6 +134,13 @@ class LandmarkProxy:
                  "time_string": f.span.string}
                 for l in locations for f in l.find_all('li', id=None)]
 
+    def get_listing(self, date, market):
+        try:
+            return Listing.objects.get(date=date, market=market)
+        except Listing.DoesNotExist:
+            app.logger.debug("DNE: Listing for %s on %s" % (market.name, date))
+            return self.make_listing(date=date, market=market)
+
 
 class Critic():
 
@@ -154,6 +149,7 @@ class Critic():
 
     def get_review(self, film):
         raise NotImplementedError
+
 
 class RTProxy(Critic):
 
@@ -169,9 +165,15 @@ class RTProxy(Critic):
             params={'q': film.title,
                     'apikey': self.rt_api_key}).json()
         results = r['movies']
+        score = results[0]['ratings']['critics_score']
+        url = results[0]['links']['alternate']
+
+        # To counteract for negative, aka nonexistent scores
+        if score < 0:
+            score = 49
 
         if len(results):
-            return Review(self.critic_id, results[0]['ratings']['critics_score'], results[0]['links']['alternate'], results[0]['ratings']['critics_score'])
+            return Review(critic=self.critic_id, rating=score, url=url, normalized=score)
         else:
             return None
 
@@ -221,7 +223,8 @@ class IMDBProxy(Critic):
                 r2.text).find_all(
                     'div',
                     attrs={'class': 'titlePageSprite'})[0].text.strip()
-            return Review(self.critic_id, float(rating), url, float(rating)*10)
+            rating = float(rating)
+            return Review(critic=self.critic_id, rating=rating, url=url, normalized=rating*10)
 
         else:
             return None
