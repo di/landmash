@@ -30,7 +30,7 @@ def root():
     try:
         date = strftime("%A, %B %-d")
         market = Market.objects.get(name='Philadelphia')
-        listing = LandmarkProxy().get_listing( strftime( "%x"), market)
+        listing = LandmarkProxy().get_listing("08/01/14", market)
         films = enumerate(listing.showing)
         return render_template('index.html', films=films, date=date, market=market)
 
@@ -88,17 +88,23 @@ class LandmarkProxy:
             try:
                 film = Film.objects.get(title=f['title'])
                 showing = Showing(location_href=location_href, location_name=location_name, time_string=time_string, film=film)
+                listing.update(add_to_set__showing=showing)
             except Film.DoesNotExist:
                 app.logger.debug("DNE: %s" % (f['title']))
                 img = "http://www.landmarktheatres.com/Assets/Images/Films/%s.jpg" % (f['href'].split("=")[1])
-                film = Film(title=f['title'], href="http://www.landmarktheatres.com" + f['href'], img=img).save()
+                try:
+                    film = Film(title=f['title'], href="http://www.landmarktheatres.com" + f['href'], img=img).save()
 
-                for critic in [RTProxy(), IMDBProxy()]:
-                    review = critic.get_review(film)
-                    film.update(add_to_set__reviews=critic.get_review(film))
+                    for critic in [RTProxy(), IMDBProxy()]:
+                        review = critic.get_review(film)
+                        film.update(add_to_set__reviews=critic.get_review(film))
 
-                showing = Showing(location_href=location_href, location_name=location_name, time_string=time_string, film=film)
-            listing.update(add_to_set__showing=showing)
+                    showing = Showing(location_href=location_href, location_name=location_name, time_string=time_string, film=film)
+                    listing.update(add_to_set__showing=showing)
+                except:
+                    pass
+            except:
+                pass
         listing.reload()
 
         # Sort the films
@@ -215,19 +221,20 @@ class IMDBProxy(Critic):
             return self.run_search(film, False)
 
     def get_review(self, film):
-        results = self.run_search(film)
-        if len(results):
-            url = results[0].a['href'].split('?')[0]
-            url = "http://www.imdb.com" + url
-            r2 = requests.get(url)
-            rating = BeautifulSoup(
-                r2.text).find_all(
-                    'div',
-                    attrs={'class': 'titlePageSprite'})[0]
-            if len(rating):
-                rating = float(rating[0].text.strip())
-                return Review(critic=self.critic_id, rating=rating, url=url, normalized=rating*10)
-            return None
-
-        else:
-            return None
+        try:
+            results = self.run_search(film)
+            if len(results):
+                url = results[0].a['href'].split('?')[0]
+                url = "http://www.imdb.com" + url
+                r2 = requests.get(url)
+                rating = BeautifulSoup(
+                    r2.text).find_all(
+                        'div',
+                        attrs={'class': 'titlePageSprite'})[0]
+                if len(rating):
+                    rating = float(rating[0].text.strip())
+                    return Review(critic=self.critic_id, rating=rating, url=url, normalized=rating*10)
+                return None
+        except:
+            pass
+        return None
