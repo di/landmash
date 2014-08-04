@@ -5,7 +5,6 @@ WTForms==1.0.5
 Werkzeug==0.8.3
 argparse==1.2.1
 beautifulsoup4==4.2.0
-distribute==0.6.34
 flask-mongoengine==0.7.0
 mongoengine==0.8.7
 pymongo==2.5.2
