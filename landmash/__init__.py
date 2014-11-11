@@ -184,7 +184,7 @@ class RTProxy(Critic):
 class IMDBProxy(Critic):
 
     def __init__(self):
-        Critic.__init__(self, "imbd")
+        Critic.__init__(self, "imdb")
 
     def run_search(self, film, exact=True):
         r = requests.get(
