@@ -2,7 +2,7 @@ from mongoengine import *
 
 class Review(EmbeddedDocument):
     url = StringField(required=True)
-    rating = IntField(required=True)
+    rating = FloatField(required=True)
     normalized = IntField(required=True)
     critic = StringField(required=True)
 

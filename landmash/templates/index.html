@@ -39,7 +39,7 @@
                         <div class = "front">{{ i+1 }}</div>
                         <div class = "back">
                             {% for r in s.film.reviews%}
-                                <a class = "ratingsLink" href="{{ r.url }}">{{ r.rating }}</a>
+                                <a class = "ratingsLink" href="{{ r.url }}">{{ r.rating|rating }}</a>
                             {% endfor %}
                         </div>
                     </div>

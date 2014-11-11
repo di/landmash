@@ -24,6 +24,12 @@ def initialize_db(flask_app):
 app = Flask(__name__)
 db = initialize_db(app)
 
+def rating_filter(rating):
+    if rating > 10:
+        return int(rating)
+    return rating
+
+app.jinja_env.filters["rating"] = rating_filter
 
 @app.route("/")
 def root():
