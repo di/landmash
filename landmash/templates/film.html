@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block subtitle %}
+    {{ film.title }}
+{% endblock %}
+
+{% block content %}
+    <div class="filmsWrapper">
+        <div class="flipContainer"></div>
+        <div class ="imgContainer">
+            <a class = "landLink" href="{{ film.href }}" alt="{{ film.title }}" title="{{ film.title }}">
+                <img class = "landPic" src="{{ film.img }}">
+            </a>
+        </div>
+        </br>
+        {% for r in film.reviews%}
+            {{ r.critic }}: <a class = "ratingsLink" href="{{ r.url }}">{{ r.rating|rating }}</a></br>
+        {% endfor %}
+    </div>
+{% endblock %}
