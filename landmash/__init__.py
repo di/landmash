@@ -2,10 +2,10 @@
 
 import os
 from time import strftime
-from flask import Flask, render_template
+from flask import Flask, render_template, abort
 from urlparse import urlparse
 from pymongo import Connection
-from landmash.models import Market
+from landmash.models import Market, Film
 from flask.ext.mongoengine import MongoEngine
 from .critics import RTCritic, IMDBCritic
 from .errors import StatusError
@@ -41,3 +41,10 @@ def root():
 
     except StatusError:
         return "Landmark Website Down!"
+
+@app.route("/<lm_id>/")
+def film(lm_id):
+    try:
+        return render_template('film.html', film=Film.get(lm_id=lm_id))
+    except Film.DoesNotExist:
+        return abort(404)
