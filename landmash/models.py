@@ -20,8 +20,9 @@ class Review(EmbeddedDocument):
 
 
 class Film(Document):
-    title = StringField(required=True)
-    href = StringField(required=True)
+    title = StringField(required=True, unique=True)
+    href = StringField(required=True, unique=True)
+    lm_id = StringField(required=True, unique=True)
     img = StringField(required=True)
     reviews = ListField(EmbeddedDocumentField(Review))
 
@@ -39,10 +40,11 @@ class Showing(EmbeddedDocument):
     location_href = StringField(required=True)
     location_name = StringField(required=True)
     time_string = StringField(required=True)
+    c_setting = StringField()
     film = ReferenceField(Film, required=True)
 
 
 class Listing(Document):
-    date = StringField(required=True)  # TODO: Make this a date
+    date = StringField(required=True, unique_with="market")  # TODO: Make this a date
     market = ReferenceField(Market, required=True)
     showing = ListField(EmbeddedDocumentField(Showing))

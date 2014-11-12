@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from .models import Listing, Showing, Film
+from flask import current_app as app
 
 
 class LandmarkProxy:
@@ -26,12 +27,6 @@ class LandmarkProxy:
 
             try:
                 film = Film.get(title=f['title'])
-                showing = Showing(
-                    location_href=location_href,
-                    location_name=location_name,
-                    time_string=time_string,
-                    film=film)
-                listing.update(add_to_set__showing=showing)
             except Film.DoesNotExist:
                 img = self.base_url + "/Assets/Images/Films/%s.jpg" % (
                     f['href'].split("=")[1])
@@ -46,12 +41,17 @@ class LandmarkProxy:
                         film.update(
                             add_to_set__reviews=critic.get_review(film))
 
-                showing = Showing(
-                    location_href=location_href,
-                    location_name=location_name,
-                    time_string=time_string,
-                    film=film)
-                listing.update(add_to_set__showing=showing)
+            showing = Showing(
+                location_href=location_href,
+                location_name=location_name,
+                time_string=time_string,
+                film=film)
+
+            # Add the c_setting, if it exists
+            if "c_setting" in f:
+                showing.c_setting = f["c_setting"]
+
+            listing.update(add_to_set__showing=showing)
         listing.reload()
 
         # Sort the films
@@ -77,12 +77,20 @@ class LandmarkProxy:
             raise StatusError(r.status_code)
 
         locations = BeautifulSoup(r.text).find_all('ul', id='navMainST')
-        return [{"title": f.a.string,
+        ret = []
+        for l in locations:
+            for f in l.find_all('li', id=None):
+                fm = {"title": f.a.string,
                  "href": f.a['href'],
                  "location_name": l.li.a.a.string,
                  "location_href": l.li.a.a['href'],
-                 "time_string": f.span.string}
-                for l in locations for f in l.find_all('li', id=None)]
+                 "time_string": f.find('span', class_='shwTime').string}
+
+                c_setting = f.find('span', class_='cSetting')
+                if c_setting != None:
+                    fm["c_setting"] = c_setting.string
+                ret.append(fm)
+        return ret
 
     def get_listing(self, date, market):
         try:
