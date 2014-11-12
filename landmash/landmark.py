@@ -33,6 +33,7 @@ class LandmarkProxy:
                 film = Film(
                     title=f['title'],
                     href=self.base_url + f['href'],
+                    lm_id=f['href'].split("=")[1],
                     img=img).save()
 
                 for critic in self.critics:
