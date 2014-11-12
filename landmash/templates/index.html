@@ -49,7 +49,11 @@
                         <img class = "landPic" src="{{ s.film.img }}">
                     </a>
                     <br/>
-                    <a href="{{ s.film.href }}">{{ s.film.title }}</a> @ <a href="{{ s.location_href }}">{{ s.location_name }}</a>, {{ s.time_string }}
+                    <a href="{{ s.film.href }}">{{ s.film.title }}</a> @ <a href="{{ s.location_href }}">{{ s.location_name }}</a><br/>
+                    {% if s.c_setting %}
+                        ({{ s.c_setting }})</br>
+                    {% endif %}
+                    Showtimes: {{ s.time_string }}</br>
                 </div>
             </div>
 
