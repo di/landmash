@@ -36,15 +36,17 @@ class Market(Document):
         return cls.objects.get(**kwargs)
 
 
-class Showing(EmbeddedDocument):
+class Showing(Document):
     location_href = StringField(required=True)
     location_name = StringField(required=True)
     time_string = StringField(required=True)
     c_setting = StringField()
     film = ReferenceField(Film, required=True)
+    market = ReferenceField(Market, required=True)
+    date = StringField(required=True)
 
 
 class Listing(Document):
     date = StringField(required=True, unique_with="market")  # TODO: Make this a date
     market = ReferenceField(Market, required=True)
-    showing = ListField(EmbeddedDocumentField(Showing))
+    showing = ListField(ReferenceField(Showing))
