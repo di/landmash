@@ -5,7 +5,7 @@ from time import strftime
 from flask import Flask, render_template, abort
 from urlparse import urlparse
 from pymongo import Connection
-from landmash.models import Market, Film
+from landmash.models import Market, Film, Showing
 from flask.ext.mongoengine import MongoEngine
 from .critics import RTCritic, IMDBCritic
 from .errors import StatusError
@@ -45,6 +45,9 @@ def root():
 @app.route("/<lm_id>/")
 def film(lm_id):
     try:
-        return render_template('film.html', film=Film.get(lm_id=lm_id))
+        film = Film.get(lm_id=lm_id)
+        market = Market.get(name='Philadelphia')
+        showing = Showing.get(film=film, date=strftime("%x"), market=market)
+        return render_template('film.html', film=film, market=market, showing=showing)
     except Film.DoesNotExist:
         return abort(404)

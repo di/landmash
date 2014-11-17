@@ -42,7 +42,8 @@ class Showing(Document):
     time_string = StringField(required=True)
     c_setting = StringField()
     film = ReferenceField(Film, required=True)
-    date = StringField(required=True, unique_with="film")
+    market = ReferenceField(Market, required=True)
+    date = StringField(required=True)
 
 
 class Listing(Document):
