@@ -1,0 +1,53 @@
+@inner-site-width: 500px;
+
+* { position: relative; }
+
+.width-25  { width: 25%;        }
+.width-50  { width: 50%;        }
+.width-75  { width: 75%;        }
+.width-40  { width: 40%;        }
+.width-60  { width: 60%;        }
+.width-33  { width: 33.333333%; }
+.width-66  { width: 66.666666%; }
+.width-100 { width: 100%;       }
+
+
+.margin-1 { margin: 0.5em 0; }
+.margin-2 { margin: 1em 0; }
+.margin-3 { margin: 2em 0; }
+.margin-4 { margin: 4em 0; }
+// .margin-5 { margin: @phi5; }
+
+// easy margins for L+G
+.padding-1 { padding: 0.5em 0; }
+.padding-2 { padding: 1em 0; }
+.padding-3 { padding: 2em 0; }
+.padding-4 { padding: 4em 0; }
+// .padding-5 { padding: @phi5; }
+
+.inner
+{
+  max-width: @inner-site-width;
+  margin: auto;
+}
+
+.inline-block(@valign: top)
+{
+  display: inline-block;
+  vertical-align: @valign;
+}
+
+.inline-top      { .inline-block(top);      }
+.inline-middle   { .inline-block(middle);   }
+.inline-baseline { .inline-block(baseline); }
+.inline-bottom   { .inline-block(bottom);   }
+
+.align-left     { text-align: left; }
+.align-center   { text-align: center; }
+.align-right    { text-align: right; }
+
+.column
+{
+  .inline-block();
+  float: left;
+}

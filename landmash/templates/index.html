@@ -1,32 +1,20 @@
 {% extends "base.html" %}
+
+{% block bodyClass %}home{% endblock %}
+
 {% block subtitle %}
     Best films for {{ date }} in {{ market.name }}
 {% endblock %}
 
 {% block content %}
+  <ol class="">
     {% for (i, s) in showing %}
-        <div class = "filmsWrapper">
-            <div class="flipContainer">
-                <div class="flipper">
-                    <div class = "front">{{ i+1 }}</div>
-                    <div class = "back">
-                        {% for r in s.film.reviews%}
-                            <a class = "ratingsLink" href="{{ r.url }}">{{ r.rating|rating }}</a>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            <div class ="imgContainer">
-                <a class = "landLink" href="{{ s.film.href }}" alt="{{ s.film.title }}" title="{{ s.film.title }}">
-                    <img class = "landPic" src="{{ s.film.img }}">
-                </a>
-                <br/>
-                <a href="{{ s.film.href }}">{{ s.film.title }}</a> @ <a href="{{ s.location_href }}">{{ s.location_name }}</a><br/>
-                {% if s.c_setting %}
-                    ({{ s.c_setting }})</br>
-                {% endif %}
-                Showtimes: {{ s.time_string }}</br>
-            </div>
-        </div>
+      <li class="column width-100 film-listing">
+        <a href="{{ s.film.lm_id }}" alt="{{ s.film.tite }}" title="{{ s.film.title }}">
+          <img class="film-image inline-top" src="{{ s.film.img }}" alt="{{ s.film.title }}">
+          <span class="text-ordinal">{{ i+1 }}</span>
+        </a>
+      </li>
     {% endfor %}
+  </ol>
 {% endblock %}

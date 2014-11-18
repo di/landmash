@@ -1,20 +1,39 @@
 {% extends "base.html" %}
 
+{% block bodyClass %}film{% endblock %}
+
 {% block subtitle %}
-    {{ film.title }}
+    Best films for <span class="todaysdate">{{ showing.date }}</span> in {{ market.name }}
+{% endblock %}
+
+{% block nav %}
+  <div class="nav width-100 align-center">
+    <a href="/" alt="Back to Listing" title="Back to Listing"><i class="icon fa fa-caret-left"></i></a>
+    <a href="{{ film.href }}" alt="View Film on Landmark" title="View Film on Landmark" target="blank"><i class="icon fa fa-ticket"></i></a>
+    <span class="text-title">#1</span>
+  </div>
 {% endblock %}
 
 {% block content %}
-    <div class="filmsWrapper">
-        <div class="flipContainer"></div>
-        <div class ="imgContainer">
-            <a class = "landLink" href="{{ film.href }}" alt="{{ film.title }}" title="{{ film.title }}">
-                <img class = "landPic" src="{{ film.img }}">
-            </a>
+  <div class="width-100 film-container">
+      <a href="{{ film.href }}" alt="View Film on Landmark" title="View Film on Landmark" target="blank">
+        <img class="film-image" src="{{ film.img }}" alt="{{ film.title}}">
+      </a>
+      <h2 class="film-title">{{ film.title }}</h2>
+      {% for r in film.reviews%}
+        <div class="film-rating">
+          <span><h3 class="text-gray">{{ r.critic }}:</h3> <a class="link-pink" href="{{ r.url }}">{{ r.rating|rating }}</a></span>
         </div>
-        </br>
-        {% for r in film.reviews%}
-            {{ r.critic }}: <a class = "ratingsLink" href="{{ r.url }}">{{ r.rating|rating }}</a></br>
-        {% endfor %}
+      {% endfor %}
+      </br>
+      <p class="film-description">The literature would have us believe that a jetty helicopter is not but a texture. The grippy poppy reveals itself as a bardy command to those who look. Unfortunately, that is wrong; on the contrary, some uncurbed pair of pantses are thought of simply as juices. What we don't know for sure is whether or not a stylar clipper's action comes with it the thought that the louvred stopwatch is an argentina.
+      </p>
+      <div class="width-100 film-location">
+        <h3 class="text-gray">Theater: <a class="link-pink" href="{{ showing.location_href }}" alt="{{ showing.location_name }}" target="blank">{{ showing.location_name }}</a></span>
+      </div>
+      <div class="width-100 film-showtimes">
+        <h3 class="text-gray">Showtimes:</h3>{{ showing.time_string }}</span>
+      </div>
+      <a href="" class="link-gray">Find this film on Amazon</a>
     </div>
 {% endblock %}

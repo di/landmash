@@ -8,7 +8,7 @@
         <link href='http://fonts.googleapis.com/css?family=Oswald:400,300' rel='stylesheet' type='text/css'>
         <link href='http://fonts.googleapis.com/css?family=Archivo+Narrow:400,400italic' rel='stylesheet' type='text/css'>
         <link href='http://fonts.googleapis.com/css?family=Lato:400,300' rel='stylesheet' type='text/css'>
-
+        <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
         <script src="{{ url_for('static', filename='js/less.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/jquery.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/moment.js') }}" type="text/javascript"></script>
@@ -24,15 +24,23 @@
         </script>
     </head>
 
-    <body class="home">
-        <div class="landmashHeader">
-            <h1><span class="border">Landmash</span></h1>
-            <h2><span class="border">
-                {% block subtitle %}{% endblock %}
-            </span></h2>
+    <body class="{% block bodyClass %}{% endblock %}">
+      <div class="width-100 padding-1 align-center header">
+        <h1 class="text-title">Landmash</h1>
+        <h2 class="text-date">{% block subtitle %}{% endblock %}</h2>
+      </div>
+      {% block nav %}
+      {% endblock %}
+      <div class="width-100 content">
+        <div class="inner">
+          {% block content %}
+          {% endblock %}
         </div>
-        <div class = "landmashWrapper">
-            {% block content %}{% endblock %}
-        </div>
+      </div>
+      <footer class="width-100 align-center">
+        {% block footerContent %}
+          <!-- <span>Some sort of thing</span> -->
+        {% endblock %}
+      </footer>
     </body>
 </html>
