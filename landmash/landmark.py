@@ -46,12 +46,15 @@ class LandmarkProxy:
                 location_href=location_href,
                 location_name=location_name,
                 time_string=time_string,
+                date=date,
+                market=market,
                 film=film)
 
             # Add the c_setting, if it exists
             if "c_setting" in f:
                 showing.c_setting = f["c_setting"]
 
+            showing.save()
             listing.update(add_to_set__showing=showing)
         listing.reload()
 
