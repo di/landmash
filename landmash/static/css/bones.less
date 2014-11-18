@@ -25,10 +25,20 @@
 .padding-4 { padding: 4em 0; }
 // .padding-5 { padding: @phi5; }
 
+@media screen and (min-width: 980px) {
 .inner
 {
   max-width: @inner-site-width;
   margin: auto;
+}
+}
+
+@media screen and (max-width: 980px) {
+.inner
+{
+  max-width: 90%;
+  margin: auto;
+}
 }
 
 .inline-block(@valign: top)

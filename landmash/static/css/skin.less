@@ -36,16 +36,45 @@ body
   background-color: @spacecadet;
 }
 
+@media screen and (min-width: 980px) {
 .film .nav,
-.film .content
+.film .content,
+.home .content
 {
-  top: 67px;
+  top: 68px;
+}
+}
+
+@media screen and (max-width: 980px) {
+.film .nav,
+.film .content,
+.home .content
+{
+  top: 146px;
+}
+}
+
+@media screen and (max-width: 800px) {
+.film .nav,
+.film .content,
+.home .content
+{
+  top: 98px;
+}
+}
+
+@media screen and (max-width: 500px) {
+.film .nav,
+.film .content,
+.home .content
+{
+  top: 68px;
+}
 }
 
 .home .content
 {
   .inline-top;
-  top: 67px;
   background-color: @spacecadet;
 }
 

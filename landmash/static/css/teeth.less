@@ -73,7 +73,6 @@ a
 .text-title
 {
   margin-bottom: 0.25em;
-  .lato(@text-medium);
   text-transform: uppercase;
 }
 
@@ -94,9 +93,48 @@ a
   transition: 0.3s all ease;
 }
 
+@media screen and (min-width: 980px) {
 .text-date
 {
   .archivo-narrow(@text-small);
+}
+.text-title
+{
+    .lato(@text-medium);
+}
+}
+
+@media screen and (max-width: 980px) {
+.text-date
+{
+  .archivo-narrow(@text-large);
+}
+.text-title
+{
+    .lato(@text-huge);
+}
+}
+
+@media screen and (max-width: 800px) {
+.text-date
+{
+  .archivo-narrow(@text-medium);
+}
+.text-title
+{
+    .lato(@text-large);
+}
+}
+
+@media screen and (max-width: 500px) {
+.text-date
+{
+  .archivo-narrow(@text-small);
+}
+.text-title
+{
+    .lato(@text-medium);
+}
 }
 
 .link-gray
