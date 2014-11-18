@@ -10,7 +10,7 @@
   <ol class="">
     {% for (i, s) in showing %}
       <li class="column width-100 film-listing">
-        <a href="{{ s.film.href }}" alt="{{ s.film.tite }}" title="{{ s.film.title }}">
+        <a href="{{ s.film.lm_id }}" alt="{{ s.film.tite }}" title="{{ s.film.title }}">
           <img class="film-image inline-top" src="{{ s.film.img }}" alt="{{ s.film.title }}">
           <span class="text-ordinal">{{ i+1 }}</span>
         </a>

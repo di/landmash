@@ -9,12 +9,6 @@ body
   background-color: @white;
 }
 
-.home .content
-{
-  .inline-top;
-  background-color: @spacecadet;
-}
-
 .grayscale
 {
   filter: grayscale(50%);
@@ -27,7 +21,12 @@ body
 
 .header
 {
+  position: fixed;
+  top: 0;
+  z-index: 1;
+  background-color: @white;
   border-bottom: 4px solid @black;
+
 }
 
 .nav
@@ -35,6 +34,24 @@ body
   height: 60px;
   padding: 0.5em;
   background-color: @spacecadet;
+}
+
+.film .nav,
+.film .content
+{
+  top: 67px;
+}
+
+.home .content
+{
+  .inline-top;
+  top: 67px;
+  background-color: @spacecadet;
+}
+
+footer
+{
+  // border-bottom: 4px solid @hayhaygray;
 }
 
 .film-image
@@ -52,7 +69,14 @@ body
   border-right: 2px solid @black;
   border-left: 2px solid @black;
   border-bottom: 1px solid @black;
-  a { color: @black; }
+  &:hover
+  {
+    .text-ordinal
+    {
+      color: @white;
+      background-color: @rinkydinkpink;
+    }
+  }
 }
 
 // FILM PAGE //
