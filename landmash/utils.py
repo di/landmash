@@ -1,6 +1,12 @@
 import time
 
 
+def db_date():
+    return time.strftime("%x")
+
+def human_date():
+    return time.strftime("%A, %B %-d")
+
 def RateLimited(maxPerSecond):
     minInterval = 1.0 / float(maxPerSecond)
 

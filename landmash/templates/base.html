@@ -27,7 +27,11 @@
     <body class="{% block bodyClass %}{% endblock %}">
       <div class="width-100 padding-1 align-center header">
         <h1 class="text-title">Landmash</h1>
-        <h2 class="text-date">{% block subtitle %}{% endblock %}</h2>
+        <h2 class="text-date">
+            {% block subtitle %}
+            Best films for {{ date }} in {{ market.name }}
+            {% endblock %}
+        </h2>
       </div>
       {% block nav %}
       {% endblock %}
