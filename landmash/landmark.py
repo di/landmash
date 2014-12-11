@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from .models import Listing, Showing, Film
+from .errors import StatusError
 from flask import current_app as app
 
 
@@ -18,7 +19,7 @@ class LandmarkProxy:
         return 0
 
     def make_listing(self, date, market):
-        listing = Listing(date=date, market=market).save()
+        listing = Listing(date=date, market=market)
         for f in self.make_request(date, market.name):
             location_href = self.base_url + f['location_href']
             location_name = f["location_name"]
